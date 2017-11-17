@@ -16,6 +16,7 @@ module GraphQL
 
       def platform_trace(platform_key, key, data)
         blacklisted_variables = options.fetch(:blacklisted_variables, [])
+        add_mutation_variables_to_tag = options.fetch(:add_mutation_variables_to_tag, false)
         service = options.fetch(:service, 'ruby-graphql')
 
         pin = Datadog::Pin.get_from(self)
@@ -30,10 +31,14 @@ module GraphQL
           end
 
           if key == 'execute_query'
-            span.set_tag(:selected_operation_name, data[:query].selected_operation_name)
-            span.set_tag(:selected_operation_type, data[:query].selected_operation.operation_type)
-            span.set_tag(:query_string, data[:query].query_string)
-            span.set_tag(:variables, scrub_variables(data[:query].variables.to_h), blacklisted_variables)
+            query = data[:query]
+            span.set_tag(:selected_operation_name, query.selected_operation_name)
+            span.set_tag(:selected_operation_type, query.selected_operation.operation_type)
+            span.set_tag(:query_string, query.query_string)
+
+            if query.query? || (query.mutation? && add_mutation_variables_to_tag)
+              span.set_tag(:variables, scrub_variables(query.variables.to_h, blacklisted_variables))
+            end
           end
           yield
         end
