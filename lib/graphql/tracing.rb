@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 require "graphql/tracing/active_support_notifications_tracing"
+require "graphql/tracing/scrubber/variables"
 require "graphql/tracing/platform_tracing"
 require "graphql/tracing/appsignal_tracing"
 require "graphql/tracing/data_dog_tracing"
